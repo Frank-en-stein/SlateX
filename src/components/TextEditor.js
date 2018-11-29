@@ -34,6 +34,7 @@ const schema = {
 	    },
 	},
 }
+var mem = {};
 
 export default class TextEditor extends Component {
 	state = {
@@ -149,7 +150,9 @@ export default class TextEditor extends Component {
 
 	hasMark = type => {
 	    const { value } = this.state
-	    return value.activeMarks.some(mark => mark.type === type)
+		if (value === undefined) return null;
+	    if (value.activeMarks === undefined) return null;
+		return value.activeMarks.some(mark => mark.type === type)
 	}
 
 	onClickImage = event => {
@@ -210,6 +213,14 @@ export default class TextEditor extends Component {
 		</div>
 	);
 
+	save = (e) => {
+		localStorage.setItem("state", JSON.stringify(this.state.value));
+	}
+
+	cancel = (e) => {
+		this.setState({value: Value.fromJSON(JSON.parse(localStorage.getItem('state')))});
+	}
+
 	render() {
 		return (
 			<Fragment>
@@ -222,6 +233,8 @@ export default class TextEditor extends Component {
 					{this.renderMarkIcon('underline', underline)}
 					{this.renderMarkIcon('quote', ic_format_quote)}
 					{this.renderImageIcon('image', image)}
+					<button onClick={(e)=>{this.save(e)}}>Save</button>
+					<button onClick={(e)=>{this.cancel(e)}}>Cancel</button>
 				</FormatToolbar>
 				<Editor
 					value={this.state.value}
