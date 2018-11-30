@@ -11,7 +11,7 @@
     "react-dom": "^16.4.1",
     "react-file-input": "^0.2.5",
     "react-icons-kit": "^1.1.6",
-    "react-scripts": "1.1.4",
+    "react-scripts": "2.1.1",
     "slate": "^0.34.5",
     "slate-edit-list": "^0.12.1",
     "slate-react": "^0.13.2"
