@@ -8,7 +8,9 @@ body {
 	padding: 0;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 		Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
-	background-color: rgb(240, 240, 240);
+	background-color: #e3e3e3;
+	background-image: url("https://www.transparenttextures.com/patterns/church.png");
+	/* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
 
 h1 {
@@ -58,7 +60,7 @@ blockquote span {
 .App {
 	color: rgb(17, 17, 17);
 	max-width: 740px;
-	background-color: rgb(255, 255, 255);
+	background-color: rgb(255, 255, 255, 1);
 	box-shadow: rgba(118, 143, 255, 0.1) 0px 16px 24px 0px;
 	padding: 40px;
 	margin: 65px auto 45px;
@@ -75,7 +77,7 @@ blockquote span {
 .tooltip-icon-button {
 	cursor: pointer;
 	border: 0;
-	background-color: white;
+	background-color: rgba(255, 255, 255, 1);
 	color: grey;
 }
 
@@ -89,5 +91,8 @@ blockquote span {
   visibility:hidden;
   width:0;
   height:0;
-  margin-bottom: 0px;
+}
+
+.image-upload {
+	height: inherit;
 }
