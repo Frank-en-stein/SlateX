@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
-import { Editor, getEventRange, getEventTransfer } from 'slate-react'
-import { Block, Value } from 'slate'
-
+import { Editor, getEventRange, getEventTransfer } from 'slate-react';
+import { Block, Value } from 'slate';
+import EditList from 'slate-edit-list';
 import InitialValue from '../utils/InitialValue';
 
 import Icon from 'react-icons-kit';
@@ -34,7 +34,9 @@ const schema = {
 	    },
 	},
 }
-var mem = {};
+
+var plugin = EditList();
+const plugins = [plugin];
 
 export default class TextEditor extends Component {
 	state = {
@@ -44,7 +46,14 @@ export default class TextEditor extends Component {
 	// On change, update the app's React state with the new editor value.
 	onChange = ({ value }) => {
 		this.setState({ value });
+		console.log(value.change().value.blocks);
 	};
+
+	call = (change) => {
+        this.setState({
+            value: this.state.value.change().call(change).value
+        });
+    }
 
 	onKeyDown = (e, change) => {
 		/*
@@ -102,15 +111,35 @@ export default class TextEditor extends Component {
 	};
 
 	renderNode = (props, editor, next) => {
-	    const { attributes, node, isFocused } = props
+	    const { attributes, node, isFocused, children } = props
+		const { value } = this.state
+		const isCurrentItem = plugin.utils
+						        .getItemsAtRange(value.change().value)
+						        .contains(node);
 
 	    switch (node.type) {
 	     	case 'image': {
 	        	const src = node.data.get('src')
 	        	return <img alt="image" src={src} selected={isFocused} {...attributes} />
 	    	}
+			case 'ul_list': {
+            	return <ul {...attributes}>{children}</ul>;
+			}
+	        case 'ol_list': {
+	            return <ol {...attributes}>{children}</ol>;
+			}
+	        case 'list_item':
+	            return (
+	                <li
+	                    className={isCurrentItem ? 'current-item' : ''}
+	                    title={isCurrentItem ? 'Current Item' : ''}
+	                    {...props.attributes}
+	                >
+	                    {props.children}
+	                </li>
+	            );
 	      	default: {
-	        	return null
+	        	return;
 	      	}
 	    }
 	}
@@ -126,13 +155,6 @@ export default class TextEditor extends Component {
 			case 'code':
 				return <code {...props.attributes}>{props.children}</code>;
 
-			case 'list':
-				return (
-					<ul {...props.attributes}>
-						<li>{props.children}</li>
-					</ul>
-				);
-
 			case 'underline':
 				return <u {...props.attributes}>{props.children}</u>;
 
@@ -143,6 +165,7 @@ export default class TextEditor extends Component {
 				return <h1 {...props.attributes}>{props.children}</h1>;
 
 			default: {
+				console.log(props);
 				return;
 			}
 		}
@@ -222,6 +245,14 @@ export default class TextEditor extends Component {
 	}
 
 	render() {
+		const {
+            wrapInList,
+            unwrapList,
+            increaseItemDepth,
+            decreaseItemDepth,
+			getItemDepth
+        } = plugin.changes;
+        const inList = plugin.utils.isSelectionInList(this.state.value);
 		return (
 			<Fragment>
 				<FormatToolbar>
@@ -229,12 +260,17 @@ export default class TextEditor extends Component {
 					{this.renderMarkIcon('bold', bold)}
 					{this.renderMarkIcon('italic', italic)}
 					{this.renderMarkIcon('code', code)}
-					{this.renderMarkIcon('list', list)}
+					<button
+	                    className={inList ? 'tooltip-icon-button active' : 'tooltip-icon-button'}
+	                    onClick={() => this.call(inList ? unwrapList : wrapInList)}
+	                >
+	                    <Icon icon={list} className="tooltip-icon-button" />
+	                </button>
 					{this.renderMarkIcon('underline', underline)}
 					{this.renderMarkIcon('quote', ic_format_quote)}
 					{this.renderImageIcon('image', image)}
-					<button onClick={(e)=>{this.save(e)}}>Save</button>
-					<button onClick={(e)=>{this.cancel(e)}}>Cancel</button>
+					<button onClick={(e)=>{this.save(e)}} >Save</button>
+					<button onClick={(e)=>{this.cancel(e)}} >Cancel</button>
 				</FormatToolbar>
 				<Editor
 					value={this.state.value}
@@ -243,6 +279,11 @@ export default class TextEditor extends Component {
 					onKeyDown={this.onKeyDown}
 					renderMark={this.renderMark}
 					renderNode={this.renderNode}
+					plugins={plugins}
+					shouldNodeComponentUpdate = { props =>
+                        // To update the highlighting of nodes inside the selection
+                        props.node.type === 'list_item'
+                    }
 				/>
 			</Fragment>
 		);
