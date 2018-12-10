@@ -8,10 +8,9 @@ import Icon from 'react-icons-kit';
 import { bold } from 'react-icons-kit/feather/bold';
 import { italic } from 'react-icons-kit/feather/italic';
 import { code } from 'react-icons-kit/feather/code';
-import { list } from 'react-icons-kit/feather/list';
 import { underline } from 'react-icons-kit/feather/underline';
 import { image } from 'react-icons-kit/feather/image';
-import { ic_title, ic_looks_one, ic_looks_two, ic_looks_3, ic_format_quote } from 'react-icons-kit/md/';
+import { ic_looks_one, ic_looks_two, ic_looks_3, ic_format_quote, ic_format_list_bulleted, ic_format_list_numbered } from 'react-icons-kit/md/';
 import { BoldMark, ItalicMark, FormatToolbar } from './index';
 
 
@@ -23,7 +22,9 @@ const schema = {
 	        	case 'last_child_type_invalid': {
 	          		const paragraph = Block.create('paragraph')
 	          		return editor.insertNodeByKey(node.key, node.nodes.size, paragraph)
-	        	}
+				}
+				default:
+					return;
 	      	}
 	    },
 	},
@@ -34,9 +35,11 @@ const schema = {
 	},
 }
 
-var plugin = EditList();
+var listTypes = ["ul_list", "ol_list"];
+var plugin = EditList({types: listTypes});
 const plugins = [plugin];
 const maxListDepth = 3;
+const orderedListType = [ "1", "i", "a" ];
 
 export default class TextEditor extends Component {
 	state = {
@@ -50,9 +53,9 @@ export default class TextEditor extends Component {
 		console.log(value.change().value.blocks);
 	};
 
-	call = (change) => {
+	call = (callback) => {
         this.setState({
-            value: this.state.value.change().call(change).value
+            value: this.state.value.change().call(callback).value
         });
     }
 
@@ -137,14 +140,14 @@ export default class TextEditor extends Component {
 	    switch (node.type) {
 	     	case 'image': {
 	        	const src = node.data.get('src')
-	        	return <img alt="image" src={src} selected={isFocused} {...attributes} />
+	        	return <img alt="Uploaded content" src={src} selected={isFocused} {...attributes} />
 	    	}
 			case 'ul_list': {
 				if (depth >= maxListDepth) return; 
 				return <ul {...attributes} depth={depth}>{children}</ul>;
 			}
 	        case 'ol_list': {
-	            return <ol {...attributes}>{children}</ol>;
+	            return <ol {...attributes} type = {orderedListType[depth%3]} >{children}</ol>;
 			}
 			case 'list_item':
 				if (depth >= maxListDepth) return; 
@@ -242,7 +245,7 @@ export default class TextEditor extends Component {
 
 	hasBlock = type => {
 		const { value } = this.state
-		return value.blocks.some(node => node.type == type)
+		return value.blocks.some(node => node.type === type)
 	}
 
 	onClickImage = event => {
@@ -314,11 +317,9 @@ export default class TextEditor extends Component {
 	render() {
 		const {
             wrapInList,
-            unwrapList,
-            increaseItemDepth,
-            decreaseItemDepth,
-			getItemDepth
-        } = plugin.changes;
+            unwrapList
+		} = plugin.changes;
+		console.log(plugin);
         const inList = plugin.utils.isSelectionInList(this.state.value);
 		return (
 			<Fragment>
@@ -331,9 +332,15 @@ export default class TextEditor extends Component {
 					{this.renderMarkIcon('code', code)}
 					<button
 	                    className={inList ? 'tooltip-icon-button active' : 'tooltip-icon-button'}
-	                    onClick={() => this.call(inList ? unwrapList : wrapInList)}
+	                    onClick={() => {this.call(inList ? unwrapList : wrapInList); listTypes.sort();}}
 	                >
-	                    <Icon icon={list} className="tooltip-icon-button" />
+	                    <Icon icon={ic_format_list_bulleted} className="tooltip-icon-button" />
+	                </button>
+					<button
+	                    className={inList ? 'tooltip-icon-button active' : 'tooltip-icon-button'}
+	                    onClick={() => {this.call(inList ? unwrapList : wrapInList); listTypes.sort(); listTypes.reverse();}}
+	                >
+	                    <Icon icon={ic_format_list_numbered} className="tooltip-icon-button" />
 	                </button>
 					{this.renderMarkIcon('underline', underline)}
 					{this.renderMarkIcon('quote', ic_format_quote)}
