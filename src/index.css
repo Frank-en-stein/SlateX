@@ -59,7 +59,7 @@ blockquote span {
 
 .App {
 	color: rgb(17, 17, 17);
-	max-width: 810px;
+	max-width: 740px;
 	background-color: rgb(255, 255, 255, 1);
 	box-shadow: rgba(118, 143, 255, 0.1) 0px 16px 24px 0px;
 	padding: 40px;
@@ -99,4 +99,7 @@ blockquote span {
 
 .btn {
 	margin-left: 10px;
+}
+.save {
+	margin-left: 190px;
 }

@@ -377,7 +377,7 @@ export default class TextEditor extends Component {
 					{this.renderMarkIcon('quote', ic_format_quote)}
 					{this.renderMarkIcon('image', image)}
 					{this.renderImageIcon('image', image)}
-					<button onClick={(e)=>{this.save(e)}} className="btn btn-small alert-success" disabled={(this.getTopLevelBlockCount() > this.props.maxSavableBlockCount)} >Save</button>
+					<button onClick={(e)=>{this.save(e)}} className="btn btn-small alert-success save" disabled={(this.getTopLevelBlockCount() > this.props.maxSavableBlockCount)} >Save</button>
 					<button onClick={(e)=>{this.cancel(e)}} className="btn btn-small alert-warning" >Cancel</button>
 				</FormatToolbar>
 				<Editor
