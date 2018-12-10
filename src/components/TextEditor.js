@@ -50,7 +50,6 @@ export default class TextEditor extends Component {
 	// On change, update the app's React state with the new editor value.
 	onChange = ({ value }) => {
 		this.setState({ value });
-		console.log(value.change().value.blocks);
 	};
 
 	call = (callback) => {
@@ -230,7 +229,6 @@ export default class TextEditor extends Component {
 				return <h3 {...props.attributes}>{props.children}</h3>;
 
 			default: {
-				console.log(props);
 				return;
 			}
 		}
@@ -241,6 +239,11 @@ export default class TextEditor extends Component {
 		if (value === undefined) return null;
 	    if (value.activeMarks === undefined) return null;
 		return value.activeMarks.some(mark => mark.type === type)
+	}
+
+	hasBlock = type => {
+		const { value } = this.state
+		return value.blocks.some(node => node.type === type)
 	}
 
 	hasBlock = type => {
@@ -328,7 +331,9 @@ export default class TextEditor extends Component {
             wrapInList,
             unwrapList
 		} = plugin.changes;
-		console.log(plugin);
+		const { value } = this.state;
+		//console.log(value.change());
+		console.log(value.changes().blocks.length);
         const inList = plugin.utils.isSelectionInList(this.state.value);
 		return (
 			<Fragment>
