@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from 'react';
-import { Editor, getEventRange, getEventTransfer } from 'slate-react';
+import { Editor } from 'slate-react';
 import { Block, Value } from 'slate';
 import EditList from 'slate-edit-list';
 import InitialValue from '../utils/InitialValue';
@@ -10,7 +10,7 @@ import { italic } from 'react-icons-kit/feather/italic';
 import { code } from 'react-icons-kit/feather/code';
 import { underline } from 'react-icons-kit/feather/underline';
 import { image } from 'react-icons-kit/feather/image';
-import { ic_looks_one, ic_looks_two, ic_looks_3, ic_format_quote, ic_format_list_bulleted, ic_format_list_numbered } from 'react-icons-kit/md/';
+import { ic_looks_one, ic_looks_two, ic_looks_3, ic_format_quote, ic_format_list_bulleted, ic_format_list_numbered, ic_cloud_download } from 'react-icons-kit/md/';
 import { BoldMark, ItalicMark, FormatToolbar } from './index';
 
 
@@ -270,6 +270,15 @@ export default class TextEditor extends Component {
 		event.target.value = null;
 	}
 
+	onClickImageLink = event => {
+		event.preventDefault();
+		const src = window.prompt('Enter the URL of the image:');
+		if (!src) return;
+		this.setState({
+            value: this.state.value.change().call(insertImage, src).value
+        });
+	}
+
 	onMarkClick = (e, type) => {
 		/* disabling browser default behavior like page refresh, etc */
 		e.preventDefault();
@@ -289,7 +298,7 @@ export default class TextEditor extends Component {
 
 	renderMarkIcon = (type, icon) => (
 		<button
-			onPointerDown={(e) => this.onMarkClick(e, type)}
+			onPointerDown={(e) => type === 'image' ? this.onClickImageLink(e) : this.onMarkClick(e, type)}
 			className=  {this.hasMark(type) && type !== 'image' ? "tooltip-icon-button icon-active" : "tooltip-icon-button"}
 		>
 			<Icon icon={icon} />
@@ -344,6 +353,7 @@ export default class TextEditor extends Component {
 	                </button>
 					{this.renderMarkIcon('underline', underline)}
 					{this.renderMarkIcon('quote', ic_format_quote)}
+					{this.renderMarkIcon('image', ic_cloud_download)}
 					{this.renderImageIcon('image', image)}
 					<button onClick={(e)=>{this.save(e)}} >Save</button>
 					<button onClick={(e)=>{this.cancel(e)}} >Cancel</button>
@@ -364,4 +374,15 @@ export default class TextEditor extends Component {
 			</Fragment>
 		);
 	}
+}
+
+function insertImage(editor, src, target) {
+	if (target) {
+	  editor.select(target)
+	}
+  
+	editor.insertBlock({
+	  type: 'image',
+	  data: { src },
+	})
 }
