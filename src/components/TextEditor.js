@@ -11,8 +11,7 @@ import { code } from 'react-icons-kit/feather/code';
 import { list } from 'react-icons-kit/feather/list';
 import { underline } from 'react-icons-kit/feather/underline';
 import { image } from 'react-icons-kit/feather/image';
-import { ic_title } from 'react-icons-kit/md/ic_title';
-import { ic_format_quote } from 'react-icons-kit/md/ic_format_quote';
+import { ic_title, ic_looks_one, ic_looks_two, ic_looks_3, ic_format_quote } from 'react-icons-kit/md/';
 import { BoldMark, ItalicMark, FormatToolbar } from './index';
 
 
@@ -41,6 +40,7 @@ const plugins = [plugin];
 export default class TextEditor extends Component {
 	state = {
 		value: InitialValue,
+		heading: 0,
 	};
 
 	// On change, update the app's React state with the new editor value.
@@ -99,8 +99,18 @@ export default class TextEditor extends Component {
 				return true;
 			}
 
-			case 'h': {
-				change.toggleMark('title');
+			case '1': {
+				change.toggleMark('heading1');
+				return true;
+			}
+
+			case '2': {
+				change.toggleMark('heading2');
+				return true;
+			}
+
+			case '3': {
+				change.toggleMark('heading3');
 				return true;
 			}
 
@@ -145,6 +155,7 @@ export default class TextEditor extends Component {
 	}
 
 	renderMark = (props) => {
+		const { value } = this.state;
 		switch (props.mark.type) {
 			case 'bold':
 				return <BoldMark {...props} />;
@@ -161,8 +172,50 @@ export default class TextEditor extends Component {
 			case 'quote':
 				return <blockquote {...props.attributes}>{props.children}</blockquote>;
 
-			case 'title':
+			case 'heading1':
+				if (this.hasMark('heading2')) {
+					const change = value.change().toggleMark('heading2');
+					this.onChange(change);
+				}
+				else if (this.hasMark('heading3')) {
+					const change = value.change().toggleMark('heading3');
+					this.onChange(change);
+				}
+				if ((this.hasMark('heading2') || this.hasMark('heading3')))
+					if (props.children.props !== undefined)
+						if (props.children.props.children !== undefined)
+							return <h1 {...props.attributes}>{props.children.props.children}</h1>;
 				return <h1 {...props.attributes}>{props.children}</h1>;
+
+			case 'heading2':
+				if (this.hasMark('heading1')) {
+					const change = value.change().toggleMark('heading1');
+					this.onChange(change);
+				}
+				else if (this.hasMark('heading3')) {
+					const change = value.change().toggleMark('heading3');
+					this.onChange(change);
+				}
+				if ((this.hasMark('heading1') || this.hasMark('heading3')))
+					if (props.children.props !== undefined)
+						if (props.children.props.children !== undefined)
+							return <h2 {...props.attributes}>{props.children.props.children}</h2>;
+				return <h2 {...props.attributes}>{props.children}</h2>;
+
+			case 'heading3':
+				if (this.hasMark('heading2')) {
+					const change = value.change().toggleMark('heading2');
+					this.onChange(change);
+				}
+				else if (this.hasMark('heading1')) {
+					const change = value.change().toggleMark('heading1');
+					this.onChange(change);
+				}
+				if (this.hasMark('heading2') || this.hasMark('heading1'))
+					if (props.children.props !== undefined)
+						if (props.children.props.children !== undefined)
+							return <h3 {...props.attributes}>{props.children.props.children}</h3>;
+				return <h3 {...props.attributes}>{props.children}</h3>;
 
 			default: {
 				console.log(props);
@@ -256,7 +309,9 @@ export default class TextEditor extends Component {
 		return (
 			<Fragment>
 				<FormatToolbar>
-					{this.renderMarkIcon('title', ic_title)}
+					{this.renderMarkIcon('heading1', ic_looks_one)}
+					{this.renderMarkIcon('heading2', ic_looks_two)}
+					{this.renderMarkIcon('heading3', ic_looks_3)}
 					{this.renderMarkIcon('bold', bold)}
 					{this.renderMarkIcon('italic', italic)}
 					{this.renderMarkIcon('code', code)}
