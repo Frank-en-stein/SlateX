@@ -10,7 +10,7 @@ import { italic } from 'react-icons-kit/feather/italic';
 import { code } from 'react-icons-kit/feather/code';
 import { underline } from 'react-icons-kit/feather/underline';
 import { image } from 'react-icons-kit/feather/image';
-import { ic_looks_one, ic_looks_two, ic_looks_3, ic_format_quote, ic_format_list_bulleted, ic_format_list_numbered, ic_cloud_download } from 'react-icons-kit/md/';
+import { ic_looks_one, ic_looks_two, ic_looks_3, ic_format_quote, ic_format_list_bulleted, ic_format_list_numbered, ic_cloud_upload } from 'react-icons-kit/md/';
 import { BoldMark, ItalicMark, FormatToolbar } from './index';
 
 
@@ -35,8 +35,7 @@ const schema = {
 	},
 }
 
-var listTypes = ["ul_list", "ol_list"];
-var plugin = EditList({types: listTypes});
+var plugin = EditList({types: ["ol_list", "ul_list"]});
 const plugins = [plugin];
 const maxListDepth = 3;
 const orderedListType = [ "1", "i", "a" ];
@@ -44,7 +43,7 @@ const orderedListType = [ "1", "i", "a" ];
 export default class TextEditor extends Component {
 	state = {
 		value: InitialValue,
-		heading: 0,
+		blockCountLimitExceeded: false
 	};
 
 	// On change, update the app's React state with the new editor value.
@@ -52,9 +51,9 @@ export default class TextEditor extends Component {
 		this.setState({ value });
 	};
 
-	call = (callback) => {
+	call = (callback, listType) => {
         this.setState({
-            value: this.state.value.change().call(callback).value
+            value: this.state.value.change().call(callback, listType).value
         });
     }
 
@@ -142,14 +141,15 @@ export default class TextEditor extends Component {
 	        	return <img alt="Uploaded content" src={src} selected={isFocused} {...attributes} />
 	    	}
 			case 'ul_list': {
-				if (depth >= maxListDepth) return; 
+				if (depth >= maxListDepth) return;
 				return <ul {...attributes} depth={depth}>{children}</ul>;
 			}
 	        case 'ol_list': {
+				if (depth >= maxListDepth) return;
 	            return <ol {...attributes} type = {orderedListType[depth%3]} >{children}</ol>;
 			}
 			case 'list_item':
-				if (depth >= maxListDepth) return; 
+				if (depth >= maxListDepth) return;
 	            return (
 	                <li
 	                    className={isCurrentItem ? 'current-item' : ''}
@@ -309,13 +309,13 @@ export default class TextEditor extends Component {
 	);
 
 	renderImageIcon = (type, icon) => (
-		<div className="image-upload">
+		<button className="image-upload tooltip-icon-button">
 		  <label htmlFor="file-input" className=" image-icon">
-		    <Icon icon={icon} className="tooltip-icon-button" />
+		    <Icon icon={ic_cloud_upload} className="tooltip-icon-button" />
 		  </label>
 
 		  <input id="file-input" accept="image/*" type="file" onChange={(e) => this.onClickImage(e)} />
-		</div>
+		</button>
 	);
 
 	save = (e) => {
@@ -326,14 +326,31 @@ export default class TextEditor extends Component {
 		this.setState({value: Value.fromJSON(JSON.parse(localStorage.getItem('state')))});
 	}
 
+	getTopLevelBlockCount = () => {
+		const { value } = this.state;
+		try {
+			return value.document.nodes._tail.array.length;
+		}
+		catch (err) {
+			return 0;
+		}
+	}
+
+	componentDidUpdate() {
+		const { value } = this.state;
+		try {
+			if (value.document.nodes._tail.array.length === 0) throw "no nodes";
+		}
+		catch (err) {
+			this.setState({value: InitialValue});
+		}
+	}
+
 	render() {
 		const {
             wrapInList,
             unwrapList
 		} = plugin.changes;
-		const { value } = this.state;
-		//console.log(value.change());
-		console.log(value.changes().blocks.length);
         const inList = plugin.utils.isSelectionInList(this.state.value);
 		return (
 			<Fragment>
@@ -346,22 +363,22 @@ export default class TextEditor extends Component {
 					{this.renderMarkIcon('code', code)}
 					<button
 	                    className={inList ? 'tooltip-icon-button active' : 'tooltip-icon-button'}
-	                    onClick={() => {this.call(inList ? unwrapList : wrapInList); listTypes.sort();}}
+	                    onClick={() => {this.call(inList ? unwrapList : wrapInList, 'ul_list')}}
 	                >
 	                    <Icon icon={ic_format_list_bulleted} className="tooltip-icon-button" />
 	                </button>
 					<button
 	                    className={inList ? 'tooltip-icon-button active' : 'tooltip-icon-button'}
-	                    onClick={() => {this.call(inList ? unwrapList : wrapInList); listTypes.sort(); listTypes.reverse();}}
+	                    onClick={() => {this.call(inList ? unwrapList : wrapInList, 'ol_list')}}
 	                >
 	                    <Icon icon={ic_format_list_numbered} className="tooltip-icon-button" />
 	                </button>
 					{this.renderMarkIcon('underline', underline)}
 					{this.renderMarkIcon('quote', ic_format_quote)}
-					{this.renderMarkIcon('image', ic_cloud_download)}
+					{this.renderMarkIcon('image', image)}
 					{this.renderImageIcon('image', image)}
-					<button onClick={(e)=>{this.save(e)}} >Save</button>
-					<button onClick={(e)=>{this.cancel(e)}} >Cancel</button>
+					<button onClick={(e)=>{this.save(e)}} className="btn btn-small alert-success" disabled={(this.getTopLevelBlockCount() > this.props.maxSavableBlockCount)} >Save</button>
+					<button onClick={(e)=>{this.cancel(e)}} className="btn btn-small alert-warning" >Cancel</button>
 				</FormatToolbar>
 				<Editor
 					value={this.state.value}
@@ -385,7 +402,7 @@ function insertImage(editor, src, target) {
 	if (target) {
 	  editor.select(target)
 	}
-  
+
 	editor.insertBlock({
 	  type: 'image',
 	  data: { src },

@@ -9,6 +9,7 @@ body {
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 		Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
 	background-color: #e3e3e3;
+	background-image: url("https://www.transparenttextures.com/patterns/church.png");
 	/* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
 
@@ -93,9 +94,9 @@ blockquote span {
 }
 
 .image-upload {
-	height: inherit;
+	width: 30px;
 }
 
-img {
-	max-width: 100%;
+.btn {
+	margin-left: 10px;
 }
