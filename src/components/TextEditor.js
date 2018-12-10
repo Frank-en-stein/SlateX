@@ -36,6 +36,7 @@ const schema = {
 
 var plugin = EditList();
 const plugins = [plugin];
+const maxListDepth = 3;
 
 export default class TextEditor extends Component {
 	state = {
@@ -126,24 +127,32 @@ export default class TextEditor extends Component {
 		const isCurrentItem = plugin.utils
 						        .getItemsAtRange(value.change().value)
 						        .contains(node);
-
+		var depth = -8;
+		var parent = props.children[0]._owner.return;
+		while (parent !== null) {
+			depth++;
+			parent = parent.return;
+		}
+		depth /= 4;
 	    switch (node.type) {
 	     	case 'image': {
 	        	const src = node.data.get('src')
 	        	return <img alt="image" src={src} selected={isFocused} {...attributes} />
 	    	}
 			case 'ul_list': {
-            	return <ul {...attributes}>{children}</ul>;
+				if (depth >= maxListDepth) return; 
+				return <ul {...attributes} depth={depth}>{children}</ul>;
 			}
 	        case 'ol_list': {
 	            return <ol {...attributes}>{children}</ol>;
 			}
-	        case 'list_item':
+			case 'list_item':
+				if (depth >= maxListDepth) return; 
 	            return (
 	                <li
 	                    className={isCurrentItem ? 'current-item' : ''}
 	                    title={isCurrentItem ? 'Current Item' : ''}
-	                    {...props.attributes}
+						{...props.attributes}
 	                >
 	                    {props.children}
 	                </li>
@@ -229,6 +238,11 @@ export default class TextEditor extends Component {
 		if (value === undefined) return null;
 	    if (value.activeMarks === undefined) return null;
 		return value.activeMarks.some(mark => mark.type === type)
+	}
+
+	hasBlock = type => {
+		const { value } = this.state
+		return value.blocks.some(node => node.type == type)
 	}
 
 	onClickImage = event => {
